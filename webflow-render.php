@@ -57,9 +57,9 @@ function webflow_init($jsonFile) {
 
     error_log(json_encode($match));
 
-    $key = md5(array_map(function ($e) {
+    $key = md5(implode('-', array_map(function ($e) {
       return $e['class'];
-    }), $match));
+    }, $match)));
 
     if (!$GLOBALS['wf_element_index'][$key]) {
       $GLOBALS['wf_element_index'][$key] = 0;
