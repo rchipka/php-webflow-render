@@ -1,4 +1,20 @@
 <?php
+class RenderContext {
+  public function __get($property) {
+    error_log($property);
+    if (property_exists($this, $property)) {
+    }
+
+    return 'test';
+  }
+
+  public function __set($property, $value) {
+    if (property_exists($this, $property)) {
+    }
+
+    return $this;
+  }
+}
 function webflow_render($keys) {
   context($keys)->enter()->exit();
 }
@@ -12,7 +28,9 @@ function webflow_init($jsonFile) {
 
   $templates = [];
 
-  foreach ($elements as $e) {
+  foreach ($elements as $i => $e) {
+    $e->class = $e->class . ' - ' . $i;
+    
     $templates[$e->class] = $e->html;
   }
 
@@ -31,8 +49,12 @@ function webflow_init($jsonFile) {
 
     // error_log(json_encode(context()->keys));
 
-    foreach ($elements as $e) {
+    foreach ($elements as $i => $e) {
       $similarity = context()->match($e->keys);
+
+      if (!$e->index) {
+        $e->index = $i;
+      }
 
       // error_log($e->class . ' => ' . $similarity);
 
@@ -61,6 +83,10 @@ function webflow_init($jsonFile) {
       return;
     }
 
+    usort($match, function ($a, $b) {
+      return $a->index - $b->index;
+    });
+
     // error_log(json_encode($match));
 
     $key = md5(implode('-', array_map(function ($e) {
@@ -73,20 +99,20 @@ function webflow_init($jsonFile) {
 
     $index = $GLOBALS['wf_element_index'][$key];
 
-
     $element = $match[$index % sizeof($match)];
 
     if ($element->rendering) {
       return;
     }
-    error_log($element->class . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
+
+    error_log($element->class . ' - ' . $element->index . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
 
     // error_log($element->html);
     // echo $index;
 
     $element->rendering = true;
 
-    echo $twig->render($element->class, array('title' => 'test'));
+    echo $twig->render($element->class, array('_context' => new RenderContext(), 'title' => 'test'));
     
     $element->rendering = false;
 
