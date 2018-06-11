@@ -20,7 +20,7 @@ function webflow_init($jsonFile) {
 
   $twig = new Twig_Environment($loader);
 
-  $twig->addFunction(new Twig_Function('do_context', 'webflow_render'));
+  $twig->addFunction(new Twig_Function('webflow_render', 'webflow_render'));
 
 
   $GLOBALS['wf_element_index'] = [];
