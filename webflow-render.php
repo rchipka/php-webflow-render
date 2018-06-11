@@ -4,7 +4,7 @@ function webflow_render($keys) {
 }
 
 function webflow_init($jsonFile) {
-  $elements = @json_decode(file_get_contents($jsonFile), true);
+  $elements = @json_decode(file_get_contents($jsonFile));
 
   if (!$elements) {
     return;
@@ -13,7 +13,7 @@ function webflow_init($jsonFile) {
   $templates = [];
 
   foreach ($elements as $e) {
-    $templates[$e['class']] = $e['html'];
+    $templates[$e->class] = $e->html;
   }
 
   $loader = new Twig_Loader_Array($templates);
@@ -29,8 +29,12 @@ function webflow_init($jsonFile) {
     $max_similarity = 0;
     $matches = [];
 
+    // error_log(json_encode(context()->keys));
+
     foreach ($elements as $e) {
-      $similarity = context()->match($e['keys']);
+      $similarity = context()->match($e->keys);
+
+      // error_log($e->class . ' => ' . $similarity);
 
       if (!$matches['' . $similarity]) {
         $matches['' . $similarity] = [];
@@ -38,25 +42,29 @@ function webflow_init($jsonFile) {
 
       $matches['' . $similarity][] = $e;
 
+      if ($e->rendering) {
+        continue;
+      }
+
       if ($similarity > $max_similarity) {
         $max_similarity = $similarity;
       }
     }
 
-    if (!$max_match <= 0) {
+    if ($max_similarity <= 0) {
       return;
     }
 
-    $match = $matches[$max_similarity];
+    $match = $matches['' . $max_similarity];
 
-    if (sizeof($match) < 1) {
+    if (!$match || sizeof($match) < 1) {
       return;
     }
 
-    error_log(json_encode($match));
+    // error_log(json_encode($match));
 
     $key = md5(implode('-', array_map(function ($e) {
-      return $e['class'];
+      return $e->class;
     }, $match)));
 
     if (!$GLOBALS['wf_element_index'][$key]) {
@@ -68,11 +76,19 @@ function webflow_init($jsonFile) {
 
     $element = $match[$index % sizeof($match)];
 
-    error_log($element['class'] . ' (' . $s . ') => ' . $index . ' / ' . sizeof($match));
+    if ($element->rendering) {
+      return;
+    }
+    error_log($element->class . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
 
+    // error_log($element->html);
     // echo $index;
 
-    echo $twig->render($element['class'], array('title' => 'test'));
+    $element->rendering = true;
+
+    echo $twig->render($element->class, array('title' => 'test'));
+    
+    $element->rendering = false;
 
     $GLOBALS['wf_element_index'][$key]++;
   });
