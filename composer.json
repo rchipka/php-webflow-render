@@ -1,8 +1,12 @@
 {
     "name": "rchipka/webflow-render",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "license": "MIT",
     "autoload": {
         "files": ["webflow-render.php"]
+    },
+    "require": {
+        "rchipka/tagbuilder": "dev-master",
+        "rchipka/context": "dev-master",
     }
 }
