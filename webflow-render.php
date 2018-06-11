@@ -25,9 +25,7 @@ function webflow_init($jsonFile) {
 
   $GLOBALS['wf_element_index'] = [];
 
-  add_action('enter_context', function () use ($elements) {
-    global $twig;
-
+  add_action('enter_context', function () use ($elements, $twig) {
     $max_similarity = 0;
     $matches = [];
 
