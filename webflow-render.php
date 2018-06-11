@@ -65,13 +65,14 @@ function webflow_init($jsonFile) {
 
     $index = $GLOBALS['wf_element_index'][$key];
 
-    error_log($key . ' (' . $s . ') => ' . $index . ' / ' . sizeof($match));
 
-    $index = $match[$index % sizeof($match)];
+    $element = $match[$index % sizeof($match)];
+
+    error_log($element['class'] . ' (' . $s . ') => ' . $index . ' / ' . sizeof($match));
 
     // echo $index;
 
-    echo $twig->render($index, array('title' => 'test'));
+    echo $twig->render($element['class'], array('title' => 'test'));
 
     $GLOBALS['wf_element_index'][$key]++;
   });
