@@ -8,5 +8,6 @@
     "require": {
         "rchipka/tagbuilder": "dev-master",
         "rchipka/context": "dev-master",
+        "twig/twig": "^2.0"
     }
 }
