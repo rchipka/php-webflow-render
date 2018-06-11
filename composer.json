@@ -1,0 +1,8 @@
+{
+    "name": "rchipka/webflow-render",
+    "version": "0.0.1",
+    "license": "MIT",
+    "autoload": {
+        "files": ["webflow-render.php"]
+    }
+}
