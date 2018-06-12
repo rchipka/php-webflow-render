@@ -46,13 +46,13 @@ function webflow_init($jsonFile) {
 
   $twig = new Twig_Environment($loader);
 
-  $twig->addFunction(new Twig_Function('webflow_render', 'webflow_render'));
+  $twig->addFunction(new Twig_SimpleFunction('webflow_render', 'webflow_render'));
   
-  $twig->addFunction(new Twig_Function('get', function ($prop) {
+  $twig->addFunction(new Twig_SimpleFunction('get', function ($prop) {
     return context()->get($prop);
   }));
 
-  $twig->addFunction(new Twig_Function('loop_context', function ($loop, $key, $seq) {
+  $twig->addFunction(new Twig_SimpleFunction('loop_context', function ($loop, $key, $seq) {
     $value = $seq[$loop['index0']];
     // error_log(json_encode($loop));
     // error_log(json_encode($key));
