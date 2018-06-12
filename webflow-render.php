@@ -52,6 +52,26 @@ function webflow_init($jsonFile) {
     return context()->get($prop);
   }));
 
+  $twig->addFunction(new Twig_SimpleFunction('field', function ($field, $post_id = null) {
+    return get_field($field, $post_id);
+  }));
+
+  $twig->addFunction(new Twig_SimpleFunction('get_field', function ($field, $post_id = null) {
+    return get_field($field, $post_id);
+  }));
+
+  $twig->addFunction(new Twig_SimpleFunction('the_field', function ($field, $post_id = null) {
+    return the_field($field, $post_id);
+  }));
+
+  $twig->addFunction(new Twig_SimpleFunction('the_row', function () {
+    return the_row();
+  }));
+
+  $twig->addFunction(new Twig_SimpleFunction('have_rows', function ($field, $post_id = null) {
+    return have_rows($field, $post_id);
+  }));
+
   $twig->addFunction(new Twig_SimpleFunction('loop_context', function ($loop, $key, $seq) {
     $value = $seq[$loop['index0']];
     // error_log(json_encode($loop));
