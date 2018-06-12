@@ -8,6 +8,11 @@
     "require": {
         "rchipka/tagbuilder": "dev-master",
         "rchipka/context": "dev-master",
-        "twig/twig": "2.x"
+        "twig/twig": "1.x"
+    },
+    "config": {
+        "platform": {
+            "php": "5.6.19"
+        }
     }
 }
