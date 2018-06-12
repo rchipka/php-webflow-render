@@ -52,6 +52,22 @@ function webflow_init($jsonFile) {
     return context()->get($prop);
   }));
 
+  $twig->addFunction(new Twig_SimpleFunction('title', function ($post_id = null) {
+    return the_title($post_id);
+  }));
+  
+  $twig->addFunction(new Twig_SimpleFunction('the_title', function ($post_id = null) {
+    return the_title($post_id);
+  }));
+  
+  $twig->addFunction(new Twig_SimpleFunction('content', function ($post_id = null) {
+    return the_content($post_id);
+  }));
+  
+  $twig->addFunction(new Twig_SimpleFunction('the_content', function ($post_id = null) {
+    return the_content($post_id);
+  }));
+
   $twig->addFunction(new Twig_SimpleFunction('field', function ($field, $post_id = null) {
     return get_sub_field($field, $post_id) ?: get_field($field, $post_id);
   }));
@@ -59,7 +75,6 @@ function webflow_init($jsonFile) {
   $twig->addFunction(new Twig_SimpleFunction('get_field', function ($field, $post_id = null) {
     return get_sub_field($field, $post_id) ?: get_field($field, $post_id);
   }));
-
   $twig->addFunction(new Twig_SimpleFunction('the_field', function ($field, $post_id = null) {
     return the_sub_field($field, $post_id) ?: the_field($field, $post_id);
   }));
