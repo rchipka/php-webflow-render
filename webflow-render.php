@@ -1,23 +1,31 @@
 <?php
-class RenderContext {
-  public function __get($property) {
-    error_log($property);
-    if (property_exists($this, $property)) {
+function webflow_render($keys, $data = null) {
+  if ($data) {
+    $item = $data['item'] ?: $data['post'];
+
+    if ($item) {
+      if (is_object($item)) {
+        foreach (get_object_vars($item) as $key) {
+          if (!$data[$key]) {
+            $data[$key] = $item->{$key};
+          }
+        }
+      } else if (is_array($item)) {
+        foreach ($item as $key => $value) {
+          if (!$data[$key]) {
+            $data[$key] = $value;
+          }
+        }
+      }
     }
 
-    return 'test';
+    $GLOBALS['wf_context'] = $data;
   }
 
-  public function __set($property, $value) {
-    if (property_exists($this, $property)) {
-    }
-
-    return $this;
-  }
-}
-function webflow_render($keys) {
   context($keys)->enter()->exit();
 }
+
+$GLOBALS['wf_context'] = [];
 
 function webflow_init($jsonFile) {
   $elements = @json_decode(file_get_contents($jsonFile));
@@ -30,7 +38,7 @@ function webflow_init($jsonFile) {
 
   foreach ($elements as $i => $e) {
     $e->class = $e->class . ' - ' . $i;
-    
+
     $templates[$e->class] = $e->html;
   }
 
@@ -39,7 +47,35 @@ function webflow_init($jsonFile) {
   $twig = new Twig_Environment($loader);
 
   $twig->addFunction(new Twig_Function('webflow_render', 'webflow_render'));
+  
+  $twig->addFunction(new Twig_Function('get', function ($prop) {
+    return context()->get($prop);
+  }));
 
+  $twig->addFunction(new Twig_Function('loop_context', function ($loop, $key, $seq) {
+    $value = $seq[$loop['index0']];
+    // error_log(json_encode($loop));
+    // error_log(json_encode($key));
+    // error_log(json_encode($seq));
+    // error_log(print_r($value, 1));
+
+    context()->set($key, $value);
+
+
+    if ($value instanceof WP_Post) {
+      setup_postdata($value);
+
+      if ($key !== 'post') {
+        context()->set('post', $value);
+      }
+
+      if ($key !== 'item') {
+        context()->set('item', $value);
+      }
+
+      return true;
+    }
+  }));
 
   $GLOBALS['wf_element_index'] = [];
 
@@ -105,14 +141,19 @@ function webflow_init($jsonFile) {
       return;
     }
 
-    error_log($element->class . ' - ' . $element->index . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
+    // context()->log($element->class . ' - ' . $element->index . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
 
     // error_log($element->html);
-    // echo $index;
 
     $element->rendering = true;
 
-    echo $twig->render($element->class, array('_context' => new RenderContext(), 'title' => 'test'));
+    $data = context()->data();
+
+    try {
+      echo $twig->render($element->class, $GLOBALS['wf_context']);
+    } catch (\Exception $e) {
+      context()->log($e->getMessage());
+    }
     
     $element->rendering = false;
 
