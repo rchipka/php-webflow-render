@@ -48,6 +48,10 @@ function webflow_init($jsonFile) {
 
   $twig->addFunction(new Twig_SimpleFunction('webflow_render', 'webflow_render'));
   
+  $twig->addFunction(new Twig_SimpleFunction('dump', function ($prop) {
+    echo print_r($prop, 1);
+  }));
+
   $twig->addFunction(new Twig_SimpleFunction('get', function ($prop) {
     return context()->get($prop);
   }));
