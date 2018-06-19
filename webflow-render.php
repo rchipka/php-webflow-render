@@ -69,7 +69,9 @@ function webflow_init($jsonFile) {
   }));
 
   $twig->addFunction(new Twig_SimpleFunction('field', function ($field, $post_id = null) {
-    return get_sub_field($field, $post_id) ?: get_field($field, $post_id);
+    $ret = get_sub_field_object($field, $post_id)['value'] ?: get_field_object($field, $post_id)['value'];
+
+    return $ret;
   }));
 
   $twig->addFunction(new Twig_SimpleFunction('get_field', function ($field, $post_id = null) {
