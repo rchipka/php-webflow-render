@@ -102,6 +102,7 @@ function webflow_init($jsonFile) {
 
     context()->set($key, $value);
 
+    context()->set('loop_item', $value);
 
     if ($value instanceof WP_Post) {
       setup_postdata($value);
@@ -156,7 +157,7 @@ function webflow_init($jsonFile) {
 
     $match = $matches['' . $max_similarity];
 
-    if (!$match || sizeof($match) < 1) {
+    if (!$match || sizeof($match) <= 0) {
       return;
     }
 
