@@ -25,7 +25,7 @@ function webflow_render($keys, $data = null) {
   context($keys)->enter()->exit();
 }
 
-$GLOBALS['wf_context'] = [];
+$GLOBALS['wf_context'] = $GLOBALS;
 
 function webflow_init($jsonFile) {
   $elements = @json_decode(file_get_contents($jsonFile));
@@ -48,6 +48,24 @@ function webflow_init($jsonFile) {
 
   $twig->addFunction(new Twig_SimpleFunction('webflow_render', 'webflow_render'));
   
+  $callback = function (array $args = array()) {
+    return call_user_func_array($this->function, $args);
+  };
+
+  $functions = get_defined_functions();
+
+  foreach (['user', 'internal'] as $type) {
+    foreach ($functions[$type] as $function) {
+      // 
+      $ctx = new stdClass();
+      $ctx->function = $function;
+
+      $twig->addFunction(
+        new Twig_SimpleFunction($function, Closure::bind($callback, $ctx), array('is_variadic' => true))
+      );
+    }
+  }
+
   $twig->addFunction(new Twig_SimpleFunction('dump', function ($prop) {
     echo print_r($prop, 1);
   }));
@@ -183,7 +201,7 @@ function webflow_init($jsonFile) {
       return;
     }
 
-    // context()->log($element->class . ' - ' . $element->index . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
+    context()->log($element->class . ' - ' . $element->index . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
 
     // error_log($element->html);
 
