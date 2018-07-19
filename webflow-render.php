@@ -44,7 +44,9 @@ function webflow_init($jsonFile) {
 
   $loader = new Twig_Loader_Array($templates);
 
-  $twig = new Twig_Environment($loader);
+  $twig = new Twig_Environment($loader, [
+    'autoescape' => false
+  ]);
 
   $twig->addFunction(new Twig_SimpleFunction('webflow_render', 'webflow_render'));
   
