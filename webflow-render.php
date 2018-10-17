@@ -1,7 +1,5 @@
 <?php
 function webflow_render($keys, $data = null) {
-  // $prev_context = $GLOBALS['wf_context'];
-
   if ($data) {
     $item = $data['item'] ?: $data['post'];
 
@@ -25,18 +23,12 @@ function webflow_render($keys, $data = null) {
   }
 
   context($keys)->enter()->exit();
-
-  // $GLOBALS['wf_context'] = $prev_context;
 }
+
+$GLOBALS['wf_context'] = $GLOBALS;
 
 function webflow_init($jsonFile) {
   $elements = @json_decode(file_get_contents($jsonFile));
-
-  $GLOBALS['wf_context'] = [];
-
-  foreach ($GLOBALS as $key => $value) {
-    $GLOBALS[$key] = $value;
-  }
 
   if (!$elements) {
     return;
@@ -211,7 +203,7 @@ function webflow_init($jsonFile) {
       return;
     }
 
-    // context()->log($element->class . ' - ' . $element->index . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
+    context()->log($element->class . ' - ' . $element->index . ' - ' . $key . ' (' . $max_similarity . ') => ' . $index . ' / ' . sizeof($match));
 
     // error_log($element->html);
 
@@ -220,7 +212,7 @@ function webflow_init($jsonFile) {
     $data = context()->data();
 
     try {
-      echo $twig->render($element->class, $GLOBALS['wf_context']);
+      echo eval('?>' . $twig->render($element->class, $GLOBALS['wf_context']));
     } catch (\Exception $e) {
       context()->log($e->getMessage());
     }
