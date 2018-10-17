@@ -220,6 +220,7 @@ function webflow_init($jsonFile) {
     $data = context()->data();
 
     try {
+      extract($GLOBALS['wf_context']);
       echo eval('?>' . $twig->render($element->class, $GLOBALS['wf_context']));
     } catch (\Exception $e) {
       context()->log($e->getMessage());
