@@ -35,7 +35,7 @@ function webflow_init($jsonFile) {
   $GLOBALS['wf_context'] = [];
 
   foreach ($GLOBALS as $key => $value) {
-    $GLOBALS[$key] = $value;
+    $GLOBALS['wf_context'][$key] = $value;
   }
 
   if (!$elements) {
