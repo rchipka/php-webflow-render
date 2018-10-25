@@ -224,9 +224,11 @@ function webflow_init($jsonFile) {
         // extract($GLOBALS['wf_context']);
         echo eval('?>' . $twig->render($element->class, $GLOBALS['wf_context']));
       } catch (\Error $e) {
+        echo wf_generate_js_error($e);
         context()->log($e->getMessage());
       }
     } catch (\Exception $e) {
+      echo wf_generate_js_error($e);
       context()->log($e->getMessage());
     }
     
@@ -234,5 +236,24 @@ function webflow_init($jsonFile) {
 
     $GLOBALS['wf_element_index'][$key]++;
   });
+}
+
+function wf_generate_js_error($e) {
+  return implode(' ', [
+            '<script>(function () {',
+            'var scripts = document.getElementsByTagName("script"),',
+            'currentScript = scripts[scripts.length - 1];',
+            'console.error(currentScript.parentNode);',
+            'var e = new Error(',
+             json_encode($e->getMessage() . "\n\n" . str_replace('wp-content/', '',str_replace(getcwd(), '',  $e->getTraceAsString()))),
+             ', ',
+             json_encode($e->getFile()),
+             ', ',
+             json_encode($e->getLine()),
+             ', ',
+            ');',
+            'throw e;',
+            '})();',
+            '</script>']);;
 }
 
