@@ -78,6 +78,8 @@ function webflow_init($jsonFile) {
 
     $render_context = context($keys);
 
+    $render_context->parent = context();
+    
     // error_log(json_encode(context()->keys));
 
     foreach ($elements as $i => $e) {
