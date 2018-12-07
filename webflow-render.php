@@ -1,7 +1,5 @@
 <?php
 function webflow_render($keys, $data = null) {
-  // $prev_context = $GLOBALS['wf_context'];
-
   if ($data) {
     $item = $data['item'] ?: $data['post'];
 
@@ -24,9 +22,7 @@ function webflow_render($keys, $data = null) {
     $GLOBALS['wf_context'] = $data;
   }
 
-  context($keys)->enter()->exit();
-
-  // $GLOBALS['wf_context'] = $prev_context;
+  do_action('webflow_render', $keys);
 }
 
 function webflow_init($jsonFile) {
@@ -55,8 +51,6 @@ function webflow_init($jsonFile) {
   $twig = new Twig_Environment($loader, [
     'autoescape' => false
   ]);
-
-  $twig->addFunction(new Twig_SimpleFunction('webflow_render', 'webflow_render'));
   
   $callback = function (array $args = array()) {
     return call_user_func_array($this->function, $args);
@@ -76,87 +70,18 @@ function webflow_init($jsonFile) {
     }
   }
 
-  $twig->addFunction(new Twig_SimpleFunction('dump', function ($prop) {
-    echo print_r($prop, 1);
-  }));
-
-  $twig->addFunction(new Twig_SimpleFunction('get', function ($prop) {
-    return context()->get($prop);
-  }));
-
-  $twig->addFunction(new Twig_SimpleFunction('title', function ($post_id = null) {
-    return the_title($post_id);
-  }));
-  
-  $twig->addFunction(new Twig_SimpleFunction('the_title', function ($post_id = null) {
-    return the_title($post_id);
-  }));
-  
-  $twig->addFunction(new Twig_SimpleFunction('content', function ($post_id = null) {
-    return the_content($post_id);
-  }));
-  
-  $twig->addFunction(new Twig_SimpleFunction('the_content', function ($post_id = null) {
-    return the_content($post_id);
-  }));
-
-  $twig->addFunction(new Twig_SimpleFunction('field', function ($field, $post_id = null) {
-    $ret = get_sub_field_object($field, $post_id)['value'] ?: get_field_object($field, $post_id)['value'];
-
-    return $ret;
-  }));
-
-  $twig->addFunction(new Twig_SimpleFunction('get_field', function ($field, $post_id = null) {
-    return get_sub_field($field, $post_id) ?: get_field($field, $post_id);
-  }));
-  $twig->addFunction(new Twig_SimpleFunction('the_field', function ($field, $post_id = null) {
-    return the_sub_field($field, $post_id) ?: the_field($field, $post_id);
-  }));
-
-  $twig->addFunction(new Twig_SimpleFunction('the_row', function () {
-    return the_row();
-  }));
-
-  $twig->addFunction(new Twig_SimpleFunction('have_rows', function ($field, $post_id = null) {
-    return have_rows($field, $post_id);
-  }));
-
-  $twig->addFunction(new Twig_SimpleFunction('loop_context', function ($loop, $key, $seq) {
-    $value = $seq[$loop['index0']];
-    // error_log(json_encode($loop));
-    // error_log(json_encode($key));
-    // error_log(json_encode($seq));
-    // error_log(print_r($value, 1));
-
-    context()->set($key, $value);
-
-    context()->set('loop_item', $value);
-
-    if ($value instanceof WP_Post) {
-      setup_postdata($value);
-
-      if ($key !== 'post') {
-        context()->set('post', $value);
-      }
-
-      if ($key !== 'item') {
-        context()->set('item', $value);
-      }
-
-      return true;
-    }
-  }));
-
   $GLOBALS['wf_element_index'] = [];
 
-  add_action('enter_context', function () use ($elements, $twig) {
+  add_action('webflow_render', function ($keys) use ($elements, $twig) {
     $max_similarity = 0;
     $matches = [];
+
+    $render_context = context($keys);
 
     // error_log(json_encode(context()->keys));
 
     foreach ($elements as $i => $e) {
-      $similarity = context()->match($e->keys);
+      $similarity = $render_context->match($e->keys);
 
       if (!$e->index) {
         $e->index = $i;
@@ -217,43 +142,20 @@ function webflow_init($jsonFile) {
 
     $element->rendering = true;
 
-    $data = context()->data();
+    $render_context->enter();
 
     try {
-      try {
-        // extract($GLOBALS['wf_context']);
-        echo eval('?>' . $twig->render($element->class, $GLOBALS['wf_context']));
-      } catch (\Error $e) {
-        echo wf_generate_js_error($e);
-        context()->log($e->getMessage());
-      }
+      // extract($GLOBALS['wf_context']);
+      echo eval('?>' . $twig->render($element->class, $GLOBALS['wf_context']));
     } catch (\Exception $e) {
-      echo wf_generate_js_error($e);
       context()->log($e->getMessage());
     }
+
+    $render_context->exit();
     
     $element->rendering = false;
 
     $GLOBALS['wf_element_index'][$key]++;
-  });
-}
-
-function wf_generate_js_error($e) {
-  return implode(' ', [
-            '<script>(function () {',
-            'var scripts = document.getElementsByTagName("script"),',
-            'currentScript = scripts[scripts.length - 1];',
-            'console.error(currentScript.parentNode);',
-            'var e = new Error(',
-             json_encode($e->getMessage() . "\n\n" . str_replace('wp-content/', '',str_replace(getcwd(), '',  $e->getTraceAsString()))),
-             ', ',
-             json_encode($e->getFile()),
-             ', ',
-             json_encode($e->getLine()),
-             ', ',
-            ');',
-            'throw e;',
-            '})();',
-            '</script>']);;
+  }, 5, 1);
 }
 
